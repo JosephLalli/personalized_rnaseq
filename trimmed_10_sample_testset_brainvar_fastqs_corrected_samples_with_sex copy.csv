@@ -1,0 +1,4 @@
+sample,sex,fastq_1,fastq_2,strandedness
+HSB484,XX,/mnt/sas0/AD/lalli/nf_stage/trimmed_reads/HSB515_1_val_1.fq.gz,/mnt/sas0/AD/lalli/nf_stage/trimmed_reads/HSB515_2_val_2.fq.gz,reverse
+HSB516,XX,/mnt/sas0/AD/lalli/nf_stage/trimmed_reads/HSB516_1_val_1.fq.gz,/mnt/sas0/AD/lalli/nf_stage/trimmed_reads/HSB516_2_val_2.fq.gz,reverse
+HSB536,XX,/mnt/sas0/AD/lalli/nf_stage/trimmed_reads/HSB536_1_val_1.fq.gz,/mnt/sas0/AD/lalli/nf_stage/trimmed_reads/HSB536_2_val_2.fq.gz,reverse

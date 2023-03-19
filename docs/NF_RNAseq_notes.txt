@@ -1,0 +1,43 @@
+#NF RNAseq notes
+
+modules.json: contains git pull info for modules from nf-core
+nextflow_schema.json: contains documentation for pipeline options (names, descriptions)
+##TODO: ensure that vcf is a valid parameter. Hell, add to documentation.
+nextflow.config: contains whole pipeline settings (default *pipeline* parameter values, metadata, profile settings, authorship info etc)
+tower.yml: Unclear, seems to be related to displaying multiqc info
+
+workflows/rnaseq.nf:
+
+    acutal pipeline configuration
+
+subworkflows:
+# no actions necessarily required for mvc
+    local:
+        pipeline-specific subworkflows, eg:
+            quantify_salmon, which takes aligned reads and performs all of salmon's qc function on it)
+            prepare_genome, which uncompresses genomes and prepares all necessary index files
+    nf-core:
+        generic plug+play workflows from nf-core
+
+modules:
+# mvc now in local modules. Outputs version and mcqual-formattable report
+    local: pipeline-specific modules (note some are modified nf-core modules)
+    nf-core: downloaded modules
+
+lib:
+# no action required for mvc
+    groovy functions, mostly parameter checks or report parsing functions to identify samples w/ poor read qualities
+
+conf:
+    base.config: template config file
+    igenomes.config: config settings for igenome options
+    modules.config: module-specific config settings
+    test_full.config: config settings for full tests
+    test.config: settings for minimal github-actions testing
+
+bin:
+    python and r scripts that are required for some of the local/custom modules
+
+assets:
+##TODO: how should multiqc handle mvc report?
+    dummy and/or test files for testing. Template files for reports. mutliqc config yaml. multiqc custom headers.
