@@ -37,6 +37,7 @@ if (file.exists(coldata)) {
 }
 
 txi = tximport(fns, type = "salmon", txOut = TRUE)
+txi.dtu = tximport(fns, type = "salmon", txOut = TRUE, countsFromAbundance="dtuScaledTPM")
 rownames(coldata) = coldata[["names"]]
 extra = setdiff(rownames(txi[[1]]),  as.character(rowdata[["tx"]]))
 if (length(extra) > 0) {
@@ -45,6 +46,9 @@ if (length(extra) > 0) {
 rowdata = rowdata[match(rownames(txi[[1]]), as.character(rowdata[["tx"]])),]
 rownames(rowdata) = rowdata[["tx"]]
 se = SummarizedExperiment(assays = list(counts = txi[["counts"]], abundance = txi[["abundance"]], length = txi[["length"]]),
+                        colData = DataFrame(coldata),
+                        rowData = rowdata)
+se.dtu = SummarizedExperiment(assays = list(counts = txi.dtu[["counts"]], abundance = txi.dtu[["abundance"]], length = txi.dtu[["length"]]),
                         colData = DataFrame(coldata),
                         rowData = rowdata)
 if (!is.null(tx2gene)) {
@@ -72,14 +76,21 @@ build_table = function(se.obj, slot) {
 if(exists("gse")){
     write.table(build_table(gse, "abundance"), paste(c(prefix, "gene_tpm.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
     write.table(build_table(gse, "counts"), paste(c(prefix, "gene_counts.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+    write.table(build_table(gse, "length"), paste(c(prefix, "gene_length.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
     write.table(build_table(gse.ls, "abundance"), paste(c(prefix, "gene_tpm_length_scaled.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
     write.table(build_table(gse.ls, "counts"), paste(c(prefix, "gene_counts_length_scaled.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+    write.table(build_table(gse.ls, "length"), paste(c(prefix, "gene_length_length_scaled.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
     write.table(build_table(gse.s, "abundance"), paste(c(prefix, "gene_tpm_scaled.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
     write.table(build_table(gse.s, "counts"), paste(c(prefix, "gene_counts_scaled.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+    write.table(build_table(gse.s, "length"), paste(c(prefix, "gene_length_scaled.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
 }
 
 write.table(build_table(se,"abundance"), paste(c(prefix, "transcript_tpm.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
 write.table(build_table(se, "counts"), paste(c(prefix, "transcript_counts.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+write.table(build_table(se, "length"), paste(c(prefix, "transcript_length.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+write.table(build_table(se.dtu, "abundance"), paste(c(prefix, "transcript_tpm_dtuscaled.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+write.table(build_table(se.dtu, "counts"), paste(c(prefix, "transcript_counts_dtuscaled.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+write.table(build_table(se.dtu, "length"), paste(c(prefix, "transcript_length_dtuscaled.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
 
 # Print sessioninfo to standard out
 citation("tximeta")
