@@ -1,4 +1,9 @@
 .nextflow*
+.editorconfig
+*.csv
+*.tsv
+old_README.md
+*.svg
 work/
 data/
 results/
