@@ -1,4 +1,4 @@
-<!--
+<!-- <!--
 # nf-core/rnaseq pull request
 
 Many thanks for contributing to nf-core/rnaseq!
@@ -22,4 +22,4 @@ Learn more about contributing: [CONTRIBUTING.md](https://github.com/nf-core/rnas
 - [ ] Usage Documentation in `docs/usage.md` is updated.
 - [ ] Output Documentation in `docs/output.md` is updated.
 - [ ] `CHANGELOG.md` is updated.
-- [ ] `README.md` is updated (including new tool citations and authors/contributors).
+- [ ] `README.md` is updated (including new tool citations and authors/contributors). -->
