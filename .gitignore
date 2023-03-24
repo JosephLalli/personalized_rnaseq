@@ -7,3 +7,5 @@ testing/
 testing*
 *.pyc
 bin/prepare_allelic_diff_objs.R
+trimmed_brainvar_fastqs_corrected_samples_with_sex_14_through_21_wpc.csv
+trimmed_brainvar_fastqs_fetal_corrected_samples_with_sex.csv
