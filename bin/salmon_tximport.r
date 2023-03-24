@@ -37,7 +37,7 @@ if (file.exists(coldata)) {
 }
 
 txi = tximport(fns, type = "salmon", txOut = TRUE)
-txi.dtu = tximport(fns, type = "salmon", txOut = TRUE, countsFromAbundance="dtuScaledTPM")
+# txi.dtu = tximport(fns, type = "salmon", txOut = TRUE, countsFromAbundance="dtuScaledTPM")
 rownames(coldata) = coldata[["names"]]
 extra = setdiff(rownames(txi[[1]]),  as.character(rowdata[["tx"]]))
 if (length(extra) > 0) {
@@ -48,9 +48,9 @@ rownames(rowdata) = rowdata[["tx"]]
 se = SummarizedExperiment(assays = list(counts = txi[["counts"]], abundance = txi[["abundance"]], length = txi[["length"]]),
                         colData = DataFrame(coldata),
                         rowData = rowdata)
-se.dtu = SummarizedExperiment(assays = list(counts = txi.dtu[["counts"]], abundance = txi.dtu[["abundance"]], length = txi.dtu[["length"]]),
-                        colData = DataFrame(coldata),
-                        rowData = rowdata)
+# se.dtu = SummarizedExperiment(assays = list(counts = txi.dtu[["counts"]], abundance = txi.dtu[["abundance"]], length = txi.dtu[["length"]]),
+#                         colData = DataFrame(coldata),
+#                         rowData = rowdata)
 if (!is.null(tx2gene)) {
     gi = summarizeToGene(txi, tx2gene = tx2gene)
     gi.ls = summarizeToGene(txi, tx2gene = tx2gene,countsFromAbundance="lengthScaledTPM")

@@ -8,15 +8,24 @@ process SALMON_TXIMPORT {
 
     input:
     path ("salmon/*")
-    path  tx2gene
+    path (tx2gene)
 
     output:
-    path "*gene_tpm.tsv"                 , emit: tpm_gene
-    path "*gene_counts.tsv"              , emit: counts_gene
-    path "*gene_counts_length_scaled.tsv", emit: counts_gene_length_scaled
-    path "*gene_counts_scaled.tsv"       , emit: counts_gene_scaled
-    path "*transcript_tpm.tsv"           , emit: tpm_transcript
-    path "*transcript_counts.tsv"        , emit: counts_transcript
+    path "*gene_tpm.tsv"                   , emit: tpm_gene
+    path "*gene_counts.tsv"                , emit: counts_gene
+    path "*gene_length.tsv"                , emit: lengths_gene
+    path "*gene_tpm_length_scaled.tsv"     , emit: tpm_gene_length_scaled
+    path "*gene_counts_length_scaled.tsv"  , emit: counts_gene_length_scaled
+    path "*gene_length_length_scaled.tsv"  , emit: lengths_gene_length_scaled
+    path "*gene_tpm_scaled.tsv"            , emit: tpm_gene_scaled
+    path "*gene_counts_scaled.tsv"         , emit: counts_gene_scaled
+    path "*gene_length_scaled.tsv"         , emit: lengths_gene_scaled
+    path "*transcript_tpm.tsv"             , emit: tpm_transcript
+    path "*transcript_counts.tsv"          , emit: counts_transcript
+    path "*transcript_length.tsv"          , emit: length_transcript
+    // path "*transcript_tpm_dtuscaled.tsv"   , emit: tpm_transcript_dtu
+    // path "*transcript_counts_dtuscaled.tsv", emit: counts_transcript_dtu
+    // path "*transcript_length_dtuscaled.tsv", emit: length_transcript_dtu
     path "versions.yml"                  , emit: versions
 
     when:
