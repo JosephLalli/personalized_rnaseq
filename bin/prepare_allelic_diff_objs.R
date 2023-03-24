@@ -1,11 +1,20 @@
 library(tidyr)
 library(interleave)
 library(data.table)
+
+if (!require("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+
+BiocManager::install("fishpond")
+library(fishpond)
+
 #Create coldata csv of experiment
-coldata = read.csv('/mnt/sas0/AD/lalli/nf_stage/rnaseq_JLL/trimmed_brainvar_fastqs_corrected_samples_with_sex.csv')
-meta = read.csv('/mnt/sas0/AD/lalli/nf_stage/rnaseq_JLL/brainvar_sample_metadata.csv')
+coldata = read.csv('/mnt/sas0/AD/lalli/nf_stage/personalized_rnaseq/trimmed_brainvar_fastqs_corrected_samples_with_sex.csv')
+meta = read.csv('/mnt/sas0/AD/lalli/nf_stage/personalized_rnaseq/brainvar_sample_metadata.csv')
+coldata = read.csv(coldata)
+meta = read.csv(meta)
 coldata = merge(coldata, meta[,c('Braincode','AgeDays')], by.x='sample',by.y ='Braincode', T, F)
-root='/mnt/sas0/AD/lalli/reference_comparison_results/T2Tv2_leung_ncbi110_personalized_oldcalls/salmon'
+# root='/mnt/sas0/AD/lalli/reference_comparison_results/T2Tv2_leung_ncbi110_personalized_oldcalls/salmon'
 coldata$files = file.path(root, coldata$sample, "quant.sf")
 coldata = coldata[c('sample','sex','AgeDays', 'files')]
 names(coldata) <- c('names','sex','age','files')
@@ -19,16 +28,38 @@ coldata$salmon_folder=file.path(root, coldata$names)
 refgtffile="/mnt/sas0/AD/lalli/nf_stage/genome_refs/T2T-CHM13_v2_ncbi110/NCBI110_Leung_T2T.gtf"
 gtfPath="/mnt/sas0/AD/lalli/reference_comparison_results/T2Tv2_leung_ncbi110_personalized_oldcalls/personalized_transcriptomes/HSB105/HSB105.gtf.gz"
 testgtf='/mnt/sas0/AD/lalli/reference_comparison_results/T2Tv2_leung_ncbi110_personalized_oldcalls/test_105.gtf'
-library(Rgb)
-gtf = read.gtf(testgtf)
+# library(Rgb)
+# gtf = read.gtf(testgtf)
 
-se <- importAllelicCounts(coldata2, 'L','R', tx2gene=gene2tx[c('ASE_tx','ASE_gene')])
 
-refgtf <- read.gtf(refgtffile)
-gene2tx=generate_tx2gene_from_gtf_obj(refgtf)
-gene2tx=make_gene2tx_diploid(gene2tx)
-all_txs = gene2tx$ASE_tx
-gene2tx[,c('ASE_tx', 'ASE_gene')]
+# refgtf <- read.gtf(refgtffile)
+# gene2tx=generate_tx2gene_from_gtf_obj(refgtf)
+devtools::install_github("jmw86069/splicejam")
+library(splicejam)
+gene2tx=splicejam::makeTx2geneFromGtf(
+  refgtffile,
+  geneAttrNames = c("gene_id", "gene_name", "gene_type"),
+  txAttrNames = c("transcript_id", "transcript_type"),
+  geneFeatureType = "gene",
+  txFeatureType = c("transcript", "mRNA"),
+  nrows = -1L,
+  verbose = FALSE)
+
+# library(gdata)
+# # gene2tx=make_gene2tx_diploid(gene2tx)
+# # all_txs = gene2tx$ASE_tx
+# # gene2tx[,c('ASE_tx', 'ASE_gene')]
+# #drop duplicate txs
+# dups = gene2tx$ASE_tx[duplicated(gene2tx$ASE_tx)]
+# gene2tx = gene2tx[! gene2tx$ASE_tx %in% unique(dups),]
+add_allele_counts <- function (gene2tx, coldata, save_location){
+  allele2tx=gene2tx[c('ASE_tx','transcript_id')]
+  se <- tximeta(coldata, skipMeta=TRUE, tx2gene=allele2tx)
+}
+
+
+# se <- importAllelicCounts(coldata, 'L','R', tx2gene=gene2tx[c('ASE_tx','ASE_gene')])
+
 
 make_gene2tx_diploid <- function(gene2tx){
   gene2tx_L=gene2tx
@@ -48,6 +79,7 @@ fill_in_missing_transcripts <- function(salmon_folder, all_txs){
   fix_quant(file.path(salmonpath, 'quant.sf'), all_txs)
   fix_bootstrap(salmon_folder, all_txs)
 }
+
 HSB105_indexdir='/mnt/sas0/AD/lalli/reference_comparison_results/T2Tv2_leung_ncbi110_personalized_oldcalls/salmon_indexes/HSB105_salmon_indexes'
 HSB105_gtf='/mnt/sas0/AD/lalli/reference_comparison_results/T2Tv2_leung_ncbi110_personalized_oldcalls/personalized_transcriptomes/HSB105/HSB105_no_prefixes.gtf.gz'
 HSB105_txome='/mnt/sas0/AD/lalli/reference_comparison_results/T2Tv2_leung_ncbi110_personalized_oldcalls/personalized_transcriptomes/HSB105/HSB105.transcriptome.fa.gz'
