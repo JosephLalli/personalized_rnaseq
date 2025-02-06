@@ -24,8 +24,8 @@ process EXTRACT_INTRONIC_REGIONS {
     def prefix = task.ext.prefix ?: "${meta.id}"
     """
     cat $fai | cut -f 1-2 | sort > sorted_sizes.txt
-    cat $gtf | cut -f 1-8 | grep gene | cut -f 1,4-8> ${prefix}.gene_regions.unsorted.bed
-    cat $gtf | cut -f 1-8 | grep exon | cut -f 1,4-8> ${prefix}.exon_regions.unsorted.bed
+    cat $gtf | cut -f 1-8 | grep gene | sed "s/^chrM\\t/chrMT\\t/" | cut -f 1,4-8 > ${prefix}.gene_regions.unsorted.bed
+    cat $gtf | cut -f 1-8 | grep exon | sed "s/^chrM\\t/chrMT\\t/" | cut -f 1,4-8 > ${prefix}.exon_regions.unsorted.bed
 
     bedtools sort -i ${prefix}.gene_regions.unsorted.bed > ${prefix}.gene_regions.bed
     bedtools sort -i ${prefix}.exon_regions.unsorted.bed | cut -f 1-3 > ${prefix}.exon_regions.bed

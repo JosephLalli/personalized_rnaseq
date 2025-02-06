@@ -34,7 +34,6 @@ include { RSEM_PREPAREREFERENCE as MAKE_TRANSCRIPTS_FASTA       } from '../../mo
 include { GTF2BED                           } from '../../modules/local/gtf2bed'
 include { EXTRACT_INTRONIC_REGIONS          } from '../../modules/local/bedtools_extract_intronic_regions'
 
-
 workflow PERSONALIZE_REFERENCES {
     take:
         samples  // meta information for each sample
@@ -59,6 +58,7 @@ workflow PERSONALIZE_REFERENCES {
     diploid_male_refs = SEPARATE_AUTOSOMAL_CHROMS.out.diploid_male_refs.collect()
     haploid_male_refs = SEPARATE_AUTOSOMAL_CHROMS.out.haploid_male_refs.collect()
 
+    
     samples.multiMap { meta -> 
             haploid: [[id: meta.id + '-haploid',
                        sex: meta.sex,
@@ -92,7 +92,7 @@ workflow PERSONALIZE_REFERENCES {
     haploid_females = meta_haploid.female.combine(haploid_female_refs)
 
     samples_with_refs = diploid_males.mix(diploid_females, haploid_males, haploid_females)
-
+    
     VCF2VCI(samples_with_refs)
     vci = VCF2VCI.out.vci
     
@@ -127,8 +127,13 @@ workflow PERSONALIZE_REFERENCES {
                                                    single_end: meta.single_end,
                                                    strandedness: meta.strandedness
                                                  ], transcriptome, ref, ref_fai, fai_gz, gtf, vci, vci_index] }
-                                         .groupTuple(by: 0, size: 2, sort: { it[1] })
-                                         .map { it.flatten() }
+                                         .groupTuple(by: 0, size: 2, sort: {a, b -> 
+                                                                        if (a.toString().contains('haploid')) {
+                                                                            return -1
+                                                                        } else {
+                                                                            return 1
+                                                                        }})
+                                         .map { [it[0]] + it[1..-1].flatten() }
 
     MERGE_DIPLOID_HAPLOID_REFS( all_transcriptomes_refs_per_sample )
     
@@ -141,7 +146,8 @@ workflow PERSONALIZE_REFERENCES {
     //
     // Create gene BED annotation file from GTFs if required
     //
-    if (!params.skip_rseqc && params.rseqc_modules.size() > 0) {
+    ch_gene_bed = Channel.empty()
+    if (! params.skip_rseqc && params.rseqc_modules.size() > 0) {
         ch_gene_bed = GTF2BED ( ch_gtf ).bed
         ch_versions = ch_versions.mix(GTF2BED.out.versions)
     }
@@ -156,6 +162,7 @@ workflow PERSONALIZE_REFERENCES {
     ch_chrom_sizes = CUSTOM_GETCHROMSIZES.out.sizes
     ch_versions    = ch_versions.mix(CUSTOM_GETCHROMSIZES.out.versions)
     ch_fasta_fai_unzipped = ch_unzipped_fastas_no_fai.join(ch_fai)
+    
     //
     // Uncompress BBSplit index or generate from scratch if required
     //
@@ -168,7 +175,7 @@ workflow PERSONALIZE_REFERENCES {
     ch_for_genome_generation = ch_fasta_fai_unzipped.join(ch_gtf)
 
     ch_star_index = Channel.empty()
-    if (params.aligner == 'star_salmon') {
+    if (!params.skip_alignment && params.aligner == 'star_salmon') {
         ch_star_index = STAR_GENOMEGENERATE ( ch_for_genome_generation ).index
         ch_versions   = ch_versions.mix(STAR_GENOMEGENERATE.out.versions)
     }
@@ -177,7 +184,7 @@ workflow PERSONALIZE_REFERENCES {
     // Uncompress RSEM index or generate from scratch if required
     //
     ch_rsem_index = Channel.empty()
-    if (params.aligner == 'star_rsem'){
+    if (!params.skip_alignment && params.aligner == 'star_rsem'){
             ch_rsem_index = RSEM_PREPAREREFERENCE_GENOME ( ch_fasta.join(ch_gtf) ).index
             ch_versions   = ch_versions.mix(RSEM_PREPAREREFERENCE_GENOME.out.versions)
     }
@@ -187,7 +194,7 @@ workflow PERSONALIZE_REFERENCES {
     //
     ch_splicesites  = Channel.empty()
     ch_hisat2_index = Channel.empty()
-    if (params.aligner == 'hisat2') {
+    if (!params.skip_alignment && params.aligner == 'hisat2') {
         ch_splicesites  = HISAT2_EXTRACTSPLICESITES ( ch_gtf ).txt
         ch_hisat2_index = HISAT2_BUILD ( ch_fasta.join(ch_gtf).join(ch_splicesites) ).index
         ch_versions     = ch_versions.mix(HISAT2_EXTRACTSPLICESITES.out.versions)
@@ -199,8 +206,8 @@ workflow PERSONALIZE_REFERENCES {
     // Uncompress Salmon index or generate from scratch if required
     //
     ch_salmon_index = Channel.empty()
-    if (params.aligner == 'salmon') {
-            SALMON_INDEX ( ch_fasta.join(ch_transcript_fasta) )
+    if (params.pseudo_aligner == 'salmon') {
+            SALMON_INDEX ( ch_fasta.map{[it[0], it[1]]}.join(ch_transcript_fasta.map{[it[0], it[1]]}) )
             ch_salmon_index = SALMON_INDEX.out.index
             ch_versions     = ch_versions.mix(SALMON_INDEX.out.versions)
         }

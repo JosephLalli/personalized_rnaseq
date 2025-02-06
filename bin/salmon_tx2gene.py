@@ -59,7 +59,7 @@ def tx2gene(gtf, salmon, gene_id, extra, out):
     with open(out, "w") as outh:
         for gene in gene_dict:
             for row in gene_dict[gene]:
-                if txid not in row:
+                if txid not in row or row[txid] == '': #EG, in NCBI110: 'NC_060930.1     Gnomon  gene    103336011       103400444       .       +       .       gene_id "LOC105377913"; transcript_id ""'
                     continue
                 if (gene, row[txid]) not in seen:
                     seen.add((gene, row[txid]))

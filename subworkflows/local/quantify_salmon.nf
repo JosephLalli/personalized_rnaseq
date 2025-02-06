@@ -78,13 +78,13 @@ workflow QUANTIFY_SALMON {
     tpm_transcript                = SALMON_TXIMPORT.out.tpm_transcript            // channel: [ val(meta), counts ]
     counts_transcript             = SALMON_TXIMPORT.out.counts_transcript         // channel: [ val(meta), counts ]
 
-    merged_gene_rds               = SALMON_SE_GENE.out.rds                        //    path: *.rds
-    merged_gene_rds_length_scaled = SALMON_SE_GENE_LENGTH_SCALED.out.rds          //    path: *.rds
-    merged_gene_rds_scaled        = SALMON_SE_GENE_SCALED.out.rds                 //    path: *.rds
+    merged_gene_rds               = SALMON_TXIMPORT.out.merged_gene_rds                        //    path: *.rds
+    merged_gene_rds_length_scaled = SALMON_TXIMPORT.out.merged_gene_length_scaled_median_bootstrap_rds          //    path: *.rds
+    merged_gene_rds_scaled        = SALMON_TXIMPORT.out.merged_gene_rds_scaled                 //    path: *.rds
 
     merged_counts_transcript      = SALMON_TXIMPORT.out.counts_transcript         //    path: *.transcript_counts.tsv
     merged_tpm_transcript         = SALMON_TXIMPORT.out.tpm_transcript            //    path: *.transcript_tpm.tsv
-    merged_transcript_rds         = SALMON_SE_TRANSCRIPT.out.rds                  //    path: *.rds
+    merged_transcript_rds         = SALMON_TXIMPORT.out.merged_transcript_length_scaled_median_bootstrap_rds                  //    path: *.rds
 
     versions                      = ch_versions                                   // channel: [ versions.yml ]
 }

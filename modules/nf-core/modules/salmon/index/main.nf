@@ -36,6 +36,9 @@ process SALMON_INDEX {
         $args \\
         -i ${meta.id}_index
 
+    rm $gentrome
+    rm decoys.txt
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         salmon: \$(echo \$(salmon --version) | sed -e "s/salmon //g")

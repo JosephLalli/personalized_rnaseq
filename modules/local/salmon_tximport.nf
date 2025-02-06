@@ -23,9 +23,28 @@ process SALMON_TXIMPORT {
     path "*transcript_tpm.tsv"             , emit: tpm_transcript
     path "*transcript_counts.tsv"          , emit: counts_transcript
     path "*transcript_length.tsv"          , emit: length_transcript
-    // path "*transcript_tpm_dtuscaled.tsv"   , emit: tpm_transcript_dtu
-    // path "*transcript_counts_dtuscaled.tsv", emit: counts_transcript_dtu
-    // path "*transcript_length_dtuscaled.tsv", emit: length_transcript_dtu
+    path "*transcript_tpm_dtuscaled.tsv"   , emit: tpm_transcript_dtu
+    path "*transcript_counts_dtuscaled.tsv", emit: counts_transcript_dtu
+    path "*transcript_length_dtuscaled.tsv", emit: length_transcript_dtu
+    path "*gene_tpm_length_scaled_median_bootstraps.tsv", emit: tpm_gene_length_scaled_median_bootstraps
+    path "*gene_counts_length_scaled_median_bootstraps.tsv", emit: counts_gene_length_scaled_median_bootstraps
+    path "*gene_length_length_scaled_median_bootstraps.tsv", emit: length_gene_length_scaled_median_bootstraps
+    path "*transcript_tpm_length_scaled_median_bootstraps.tsv", emit: tpm_transcript_length_scaled_median_bootstraps
+    path "*transcript_counts_length_scaled_median_bootstraps.tsv", emit: counts_transcript_length_scaled_median_bootstraps
+    path "*transcript_length_length_scaled_median_bootstraps.tsv", emit: length_transcript_length_scaled_median_bootstraps
+
+    path "*transcript_tpm.tximport_se.rds", emit: merged_transcript_rds
+    path "*transcript_tpm_dtuscaled.tximport_se.rds", emit: merged_transcript_dtuscaled_rds
+    path "*transcript_tpm_length_scaled.median_bootstrap.tximport_se.rds", emit: merged_transcript_length_scaled_median_bootstrap_rds
+    path "*gene_tpm.tximport_se.rds", emit: merged_gene_rds
+    path "*gene_tpm_length_scaled.tximport_se.rds", emit: merged_gene_rds_length_scaled
+    path "*gene_tpm_scaled.tximport_se.rds", emit: merged_gene_rds_scaled
+    path "*gene_tpm_length_scaled.median_bootstrap.tximport_se.rds", emit: merged_gene_length_scaled_median_bootstrap_rds
+
+
+    path "*.tsv", emit: tsv
+    path "*se.rds", emit: rds
+
     path "versions.yml"                  , emit: versions
 
     when:

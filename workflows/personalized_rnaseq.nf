@@ -605,6 +605,9 @@ workflow RNASEQ {
         ch_versions = ch_versions.mix(MARK_DUPLICATES_PICARD.out.versions)
     }
 
+    ch_samtools_exonic_stats = Channel.empty()
+    ch_samtools_intronic_stats = Channel.empty()
+    ch_samtools_intergenic_stats = Channel.empty()
     if (!params.skip_alignment && !params.skip_intron_coverage) {
         ch_fasta = PREPARE_GENOME.out.fasta
         SAMTOOLS_STATS_EXONS(ch_genome_bam.join(ch_genome_bam_index).join(PREPARE_GENOME.out.exon_bed).join(ch_fasta), 'exons')

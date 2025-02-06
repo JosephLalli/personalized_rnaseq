@@ -37,7 +37,6 @@ if (file.exists(coldata)) {
 }
 
 txi = tximport(fns, type = "salmon", txOut = TRUE)
-# txi.dtu = tximport(fns, type = "salmon", txOut = TRUE, countsFromAbundance="dtuScaledTPM")
 rownames(coldata) = coldata[["names"]]
 extra = setdiff(rownames(txi[[1]]),  as.character(rowdata[["tx"]]))
 if (length(extra) > 0) {
@@ -48,16 +47,13 @@ rownames(rowdata) = rowdata[["tx"]]
 se = SummarizedExperiment(assays = list(counts = txi[["counts"]], abundance = txi[["abundance"]], length = txi[["length"]]),
                         colData = DataFrame(coldata),
                         rowData = rowdata)
-# se.dtu = SummarizedExperiment(assays = list(counts = txi.dtu[["counts"]], abundance = txi.dtu[["abundance"]], length = txi.dtu[["length"]]),
-#                         colData = DataFrame(coldata),
-#                         rowData = rowdata)
 if (!is.null(tx2gene)) {
     gi = summarizeToGene(txi, tx2gene = tx2gene)
     gi.ls = summarizeToGene(txi, tx2gene = tx2gene,countsFromAbundance="lengthScaledTPM")
     gi.s = summarizeToGene(txi, tx2gene = tx2gene,countsFromAbundance="scaledTPM")
     growdata = unique(rowdata[,2:3])
     growdata = growdata[match(rownames(gi[[1]]), growdata[["gene_id"]]),]
-    rownames(growdata) = growdata[["tx"]]
+    rownames(growdata) = growdata[["tx"]] # In my hands, resolves to NULL, but that's a good thing
     gse = SummarizedExperiment(assays = list(counts = gi[["counts"]], abundance = gi[["abundance"]], length = gi[["length"]]),
                                 colData = DataFrame(coldata),
                                 rowData = growdata)
@@ -68,6 +64,27 @@ if (!is.null(tx2gene)) {
                                 colData = DataFrame(coldata),
                                 rowData = growdata)
 }
+
+txi.dtu = tximport(fns, type = "salmon", tx2gene=tx2gene, txOut = TRUE, countsFromAbundance="dtuScaledTPM")
+se.dtu = SummarizedExperiment(assays = list(counts = txi.dtu[["counts"]], abundance = txi.dtu[["abundance"]], length = txi.dtu[["length"]]),
+                        colData = DataFrame(coldata),
+                        rowData = rowdata)
+
+if ("infReps" %in% names(txi)){
+    txi.ls.infReps = tximport(fns, type = "salmon", tx2gene=tx2gene, txOut = TRUE, countsFromAbundance="dtuScaledTPM", varReduce=TRUE, infRepStat=matrixStats::rowMedians)
+    gi.ls.infReps = summarizeToGene(txi.ls.infReps, tx2gene = tx2gene, countsFromAbundance="lengthScaledTPM", varReduce=TRUE)
+    # gi.ls.infReps = summarizeToGene(txi, tx2gene = tx2gene,countsFromAbundance="lengthScaledTPM", varReduce=TRUE)
+    se.ls.infReps = SummarizedExperiment(assays = list(counts = txi.ls.infReps[["counts"]], abundance = txi.ls.infReps[["abundance"]], length = txi.ls.infReps[["length"]]),
+                                colData = DataFrame(coldata),
+                                rowData = rowdata)
+    gse.ls.infReps = SummarizedExperiment(assays = list(counts = gi.ls.infReps[["counts"]], abundance = gi.ls.infReps[["abundance"]], length = gi.ls.infReps[["length"]]),
+                                colData = DataFrame(coldata),
+                                rowData = growdata)
+
+}
+# 
+# txi.ls = tximport(fns, type = "salmon", tx2gene=tx2gene, txOut = TRUE, countsFromAbundance="lengthScaledTPM", varReduce=TRUE, infRepStat=matrixStats::rowMedians)
+
 
 build_table = function(se.obj, slot) {
     cbind(rowData(se.obj)[,1:2], assays(se.obj)[[slot]])
@@ -91,6 +108,23 @@ write.table(build_table(se, "length"), paste(c(prefix, "transcript_length.tsv"),
 write.table(build_table(se.dtu, "abundance"), paste(c(prefix, "transcript_tpm_dtuscaled.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
 write.table(build_table(se.dtu, "counts"), paste(c(prefix, "transcript_counts_dtuscaled.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
 write.table(build_table(se.dtu, "length"), paste(c(prefix, "transcript_length_dtuscaled.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+
+if (exists("gse.ls.infReps")){
+    write.table(build_table(gse.ls.infReps, "abundance"), paste(c(prefix, "gene_tpm_length_scaled_median_bootstraps.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+    write.table(build_table(gse.ls.infReps, "counts"), paste(c(prefix, "gene_counts_length_scaled_median_bootstraps.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+    write.table(build_table(gse.ls.infReps, "length"), paste(c(prefix, "gene_length_length_scaled_median_bootstraps.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+    write.table(build_table(se.ls.infReps,"abundance"), paste(c(prefix, "transcript_tpm_length_scaled_median_bootstraps.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+    write.table(build_table(se.ls.infReps, "counts"), paste(c(prefix, "transcript_counts_length_scaled_median_bootstraps.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+    write.table(build_table(se.ls.infReps, "length"), paste(c(prefix, "transcript_length_length_scaled_median_bootstraps.tsv"), collapse="."), sep="\t", quote=FALSE, row.names = FALSE)
+}
+
+saveRDS(se,     file = paste0("transcript_tpm.tximport_se.rds"))
+saveRDS(se.dtu,   file = paste0("transcript_tpm_dtuscaled.tximport_se.rds"))
+saveRDS(se.ls.infReps,   file = paste0("transcript_tpm_length_scaled.median_bootstrap.tximport_se.rds"))
+saveRDS(gse,    file = paste0("gene_tpm.tximport_se.rds"))
+saveRDS(gse.ls, file = paste0("gene_tpm_length_scaled.tximport_se.rds"))
+saveRDS(gse.s,  file = paste0("gene_tpm_scaled.tximport_se.rds"))
+saveRDS(gse.ls.infReps,  file = paste0("gene_tpm_length_scaled.median_bootstrap.tximport_se.rds"))
 
 # Print sessioninfo to standard out
 citation("tximeta")

@@ -257,11 +257,11 @@ workflow PREPARE_REFERENCE_GENOME {
     intron_bed       = EXTRACT_INTRONIC_REGIONS.out.intronic_regions
     intergenic_bed   = EXTRACT_INTRONIC_REGIONS.out.intergenic_regions
     gene_bed         = params.use_personalized_references ? Channel.empty() : ch_gene_bed         //    path: gene.bed
-    transcript_fasta = ch_transcript_fasta //    path: transcript.fasta
+    transcript_fasta = params.use_personalized_references ? Channel.empty() : ch_transcript_fasta //    path: transcript.fasta
     chrom_sizes      = params.use_personalized_references ? Channel.empty() : ch_chrom_sizes      //    path: genome.sizes
     splicesites      = params.use_personalized_references ? Channel.empty() : ch_splicesites      //    path: genome.splicesites.txt
     bbsplit_index    = params.use_personalized_references ? Channel.empty() : ch_bbsplit_index    //    path: bbsplit/index/
-    star_index       = ch_star_index       //    path: star/index/
+    star_index       = params.use_personalized_references ? Channel.empty() : ch_star_index       //    path: star/index/
     rsem_index       = params.use_personalized_references ? Channel.empty() : ch_rsem_index       //    path: rsem/index/
     hisat2_index     = params.use_personalized_references ? Channel.empty() : ch_hisat2_index     //    path: hisat2/index/
     salmon_index     = params.use_personalized_references ? Channel.empty() : ch_salmon_index     //    path: salmon/index/

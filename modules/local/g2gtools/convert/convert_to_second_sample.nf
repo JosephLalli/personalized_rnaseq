@@ -5,7 +5,7 @@ process CONVERT_TO_SECOND_SAMPLE {
     conda (params.enable_conda ? "bioconda::stringtie=2.2.1" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/stringtie:2.2.1--hecb563c_2' :
-        'jlalli/g2gtools:0.3.1' }"
+        'jlalli/g2gtools:0.2.9' }"
 
     input:
     tuple val(meta), path(file_to_convert)
