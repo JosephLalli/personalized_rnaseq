@@ -5,7 +5,7 @@ process VCF2VCI {
     conda (params.enable_conda ? "bioconda::stringtie=2.2.1" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/stringtie:2.2.1--hecb563c_2' :
-        'jlalli/g2gtools:0.2.9' }"
+        'docker.io/jlalli/g2gtools:3.1-792b2da' }"
 
     input:
     tuple val (meta), path (ref_fasta), path (ref_fai), path(ref_gzi), path (vcf), path (vcf_tbi), path(gtf)
@@ -20,26 +20,34 @@ process VCF2VCI {
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}"
+    def samplename = meta.dna_id ?: "${meta.sample}"
     def ploidy_arg = meta.ploidy == 'diploid' ? "--diploid" : ""
-    def previously_generated_file_path = params.force_resume ? task.publishDir.path[0] : ""
     """
-    if [[ -s ${previously_generated_file_path}/${prefix}.vci.gz ]]
-    then
-        ln -s ${previously_generated_file_path}/${prefix}.vci.gz .
-        ln -s ${previously_generated_file_path}/${prefix}.vci.gz.tbi .
-    else
-        g2gtools vcf2vci -o ${prefix}.vci \\
-                        -s ${meta.sample} \\
-                        -f ${ref_fasta} \\
-                        ${ploidy_arg} \\
-                        -p ${task.cpus}\\
-                        ${args} \\
-                        -i ${vcf}
-    fi
+    g2gtools vcf2vci --strain ${samplename} \\
+                     --fasta ${ref_fasta} \\
+                     ${ploidy_arg} \\
+                     --num-processes ${task.cpus}\\
+                     --gtf ${gtf} \\
+                     ${args} \\
+                     --vcf ${vcf} \\
+                     --vci ${prefix}.withstar.vci && \\
+    zcat ${prefix}.withstar.vci.gz | grep -v '*' | bgzip > ${prefix}.vci.gz && tabix -p vcf ${prefix}.vci.gz && rm ${prefix}.withstar.vci.gz*
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        g2gtools: \$(g2gtools --version 2>&1)
+        g2gtools: \$(g2gtools --version | tail -n 1)
+    END_VERSIONS
+    """
+
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}"
+    """
+    touch  ${prefix}.vci.gz
+    touch  ${prefix}.vci.gz.tbi
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        g2gtools: \$(g2gtools --version | tail -n 1)
     END_VERSIONS
     """
 }

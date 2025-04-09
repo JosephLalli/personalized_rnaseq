@@ -9,19 +9,19 @@ BiocManager::install("fishpond")
 library(fishpond)
 
 #Create coldata csv of experiment
-coldata = read.csv('/mnt/sas0/AD/lalli/nf_stage/personalized_rnaseq/trimmed_brainvar_fastqs_corrected_samples_with_sex.csv')
-meta = read.csv('/mnt/sas0/AD/lalli/nf_stage/personalized_rnaseq/brainvar_sample_metadata.csv')
-coldata = read.csv(coldata)
-meta = read.csv(meta)
-coldata = merge(coldata, meta[,c('Braincode','AgeDays')], by.x='sample',by.y ='Braincode', T, F)
-# root='/mnt/sas0/AD/lalli/reference_comparison_results/T2Tv2_leung_ncbi110_personalized_oldcalls/salmon'
+coldata = read.csv('/mnt/ssd/lalli/nf_stage/personalized_rnaseq/JLL_specific_files/test_data/test_data.samplesheet_aws.csv')
+meta = read.csv('/mnt/ssd/lalli/nf_stage/personalized_rnaseq/JLL_specific_files/brainvar_sample_sheets/brainvar2_subject_metadata_v1.3.tsv', sep='\t')
+# coldata = read.csv(coldata)
+# meta = read.csv(meta)
+coldata = merge(coldata, meta[,c('SubjectID','matching_bulkRNA_library','AgeDays')], by.x='sample',by.y ='matching_bulkRNA_library', T, F)
+root='/mnt/ssd/lalli/nf_stage/personalized_rnaseq/JLL_specific_files/test_data/T2T_personalized_full_output/salmon'
 coldata$files = file.path(root, coldata$sample, "quant.sf")
-coldata = coldata[c('sample','sex','AgeDays', 'files')]
-names(coldata) <- c('names','sex','age','files')
+coldata$salmon_folder=file.path(root, coldata$sample)
+coldata = coldata[c('SubjectID','sex','AgeDays', 'files', 'salmon_folder')]
+names(coldata) <- c('names','sex','age','files', 'salmon_folders')
 coldata = coldata[file.exists(coldata$files),]
 coldata$sex <- factor(coldata$sex, levels=c("XX","XY"))
 
-coldata$salmon_folder=file.path(root, coldata$names)
 
 #Import annotations
 ###TODO/NOTE: Probably the way to go about this is to load each allelic count with own gtf, then cbind() the resulting SummarizedExperiments together.
@@ -152,7 +152,7 @@ read_bootstrap <- function(salmonpath){
     bootsIn <- readBin(bootCon, "double", n = expected.n)
     stopifnot(length(bootsIn) == expected.n)
     bootsIn
-  }) 
+  })
   close(bootCon)
   dim(boots) <- c(length(txnames), minfo$num_bootstraps)
   boots = as.data.frame(boots)

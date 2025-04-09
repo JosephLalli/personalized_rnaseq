@@ -5,7 +5,7 @@ process CONVERT_TO_SAMPLE_COORDS {
     conda (params.enable_conda ? "bioconda::stringtie=2.2.1" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/stringtie:2.2.1--hecb563c_2' :
-        'jlalli/g2gtools:0.2.9' }"
+        'docker.io/jlalli/g2gtools:3.1-792b2da' }"
 
     input:
     tuple val(meta), path(vci)
@@ -30,7 +30,18 @@ process CONVERT_TO_SAMPLE_COORDS {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        g2gtools: \$(g2gtools --version 2>&1)
+        g2gtools: \$(g2gtools --version | tail -n 1)
+    END_VERSIONS
+    """
+
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}.refcoords"
+    """
+    touch ${prefix}.${suffix}
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        g2gtools: \$(g2gtools --version | tail -n 1)
     END_VERSIONS
     """
 }

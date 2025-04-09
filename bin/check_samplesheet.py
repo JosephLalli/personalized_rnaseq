@@ -103,7 +103,7 @@ def check_samplesheet(file_in, file_out):
                             )
 
                 ## Check strandedness
-                strandednesses = ["unstranded", "forward", "reverse"]
+                strandednesses = ["unstranded", "forward", "reverse", "auto"]
                 if strandedness:
                     if strandedness not in strandednesses:
                         print_error(
@@ -117,7 +117,7 @@ def check_samplesheet(file_in, file_out):
                         "Line",
                         line,
                     )
-                
+
                 ## Check sex
                 sexes = ["XX", "XY"]
                 if sex:

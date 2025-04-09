@@ -5,7 +5,7 @@ process CONVERT {
     conda (params.enable_conda ? "bioconda::stringtie=2.2.1" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/stringtie:2.2.1--hecb563c_2' :
-        'jlalli/g2gtools:0.2.9' }"
+        'docker.io/jlalli/g2gtools:3.1-792b2da' }"
 
     input:
     tuple val(meta), path(vci), path(vci_tbi), path (infile)
@@ -15,34 +15,42 @@ process CONVERT {
     tuple val(meta), path("*$suffix")   , emit: converted_file
     path  "versions.yml"                     , emit: versions
 
-    when:
-    task.ext.when == null || task.ext.when
-
     script:
     def args = task.ext.args ?: ''
     def prefix = task.ext.prefix ?: "${meta.id}_specific"
-    // and now, for the hackiest of hacks to get around the fact that 
-    // some of my test files have no variants in chrMT, leading to no 
-    // chrMT gtf records being converted in a mistaken belief that the 
+    // and now, for the hackiest of hacks to get around the fact that
+    // some of my test files have no variants in chrMT, leading to no
+    // chrMT gtf records being converted in a mistaken belief that the
     // contig has been deleted.
     // TODO: figure out a better way!
     def append_chrMT = ""
     if (meta.ploidy && (meta.ploidy == 'haploid') && (suffix == 'gtf')){
         append_chrMT = "cat *.unmapped | grep ^chrMT >> ${prefix}.gtf || true"
     }
-    def previously_generated_file_path = params.force_resume ? task.publishDir.path[0] : ""
+
     """
-    g2gtools convert -c ${vci} \\
-                     -i ${infile} \\
-                     -f $suffix \\
+    g2gtools convert --vci ${vci} \\
+                     --in ${infile} \\
+                     --file-format $suffix \\
                      $args \\
-                     -o ${prefix}.$suffix
-    
+                     --out ${prefix}.$suffix
+
     ${append_chrMT}
-        
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        g2gtools: \$(g2gtools --version 2>&1)
+        g2gtools: \$(g2gtools --version | tail -n 1)
+    END_VERSIONS
+    """
+
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}_specific"
+    """
+    touch ${prefix}.$suffix
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        g2gtools: \$(g2gtools --version | tail -n 1)
     END_VERSIONS
     """
 }

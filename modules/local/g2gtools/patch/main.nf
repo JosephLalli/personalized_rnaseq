@@ -5,7 +5,7 @@ process PATCH {
     conda (params.enable_conda ? "bioconda::stringtie=2.2.1" : null)
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/stringtie:2.2.1--hecb563c_2' :
-        'jlalli/g2gtools:0.2.9' }"
+        'docker.io/jlalli/g2gtools:3.1-792b2da' }"
 
     input:
     tuple val(meta), path(vci), path(vci_tbi), path (ref_fasta), path(fai), path(gzi)
@@ -19,25 +19,30 @@ process PATCH {
 
     script:
     def args = task.ext.args ?: ''
-    def prefix = task.ext.prefix ?: "${meta.id}.patched"
-        def previously_generated_file_path = params.force_resume ? task.publishDir.path[0] : ""
+    def prefix = task.ext.prefix ?: "${meta.id}"
     """
-    if [[ -s ${previously_generated_file_path}/${prefix}.patched.fa.gz ]]
-    then
-        ln -s ${previously_generated_file_path}/${prefix}.patched.fa.gz .
-        ln -s ${previously_generated_file_path}/${prefix}.patched.fa.gz.fai .
-        ln -s ${previously_generated_file_path}/${prefix}.patched.fa.gz.gzi .
-    else
-        g2gtools patch ${args} -c ${vci} \\
-                    -i ${ref_fasta} \\
-                    -p ${task.cpus} \\
-                    -o ${prefix}.patched.fa \\
-                    --bgzip
-    fi
+    g2gtools patch ${args} --vci ${vci} \\
+                --fasta ${ref_fasta} \\
+                --out ${prefix}.patched.fa \\
+                --bgzip && \\
+    samtools faidx ${prefix}.patched.fa.gz
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        g2gtools: \$(g2gtools --version 2>&1)
+        g2gtools: \$(g2gtools --version | tail -n 1)
+    END_VERSIONS
+    """
+
+    stub:
+    def prefix = task.ext.prefix ?: "${meta.id}"
+    """
+    touch  ${prefix}.patched.fa.gz
+    touch  ${prefix}.patched.fa.gz.fai
+    touch  ${prefix}.patched.fa.gz.gzi
+
+    cat <<-END_VERSIONS > versions.yml
+    "${task.process}":
+        g2gtools: \$(g2gtools --version | tail -n 1)
     END_VERSIONS
     """
 }

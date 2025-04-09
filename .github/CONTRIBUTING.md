@@ -77,7 +77,7 @@ If you wish to contribute a new step, please use the following coding standards:
 
 ### Default values
 
-Parameters should be initialised / defined with default values in `nextflow.config` under the `params` scope.
+Parameters should be initialized / defined with default values in `nextflow.config` under the `params` scope.
 
 Once there, use `nf-core schema build` to add to `nextflow_schema.json`.
 

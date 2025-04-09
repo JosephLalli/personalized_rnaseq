@@ -12,8 +12,8 @@ process SPLIT_OUT_HAPLOID_CHROMS {
     path (ref_fai)
 
     output:
-    tuple path ("no_Y.fa.gz"), path('no_Y.fa.gz.fai'), path('no_Y.fa.gz.gzi'), 
-          path ("chrMT.fa.gz"), path('chrMT.fa.gz.fai'), path('chrMT.fa.gz.gzi'), 
+    tuple path ("no_Y.fa.gz"), path('no_Y.fa.gz.fai'), path('no_Y.fa.gz.gzi'),
+          path ("chrMT.fa.gz"), path('chrMT.fa.gz.fai'), path('chrMT.fa.gz.gzi'),
           path ("male_haploid.fa.gz"), path('male_haploid.fa.gz.fai'), path('male_haploid.fa.gz.gzi'),
           path ("autosomes.fa.gz"), path("autosomes.fa.gz.fai"), path("autosomes.fa.gz.gzi"), emit: fastas
 
@@ -23,18 +23,18 @@ process SPLIT_OUT_HAPLOID_CHROMS {
     task.ext.when == null || task.ext.when
 
     script:
-    def args = task.ext.args ?: ''
-    def ploidy = task.ext.ploidy ?: "--diploid"
+    // def args = task.ext.args ?: ''
+    // def ploidy = task.ext.ploidy ?: "--diploid"
     def chrX = params.chrX ?: 'chrX'
     def chrY = params.chrY ?: 'chrY'
     def chrMT = params.chrMT ?: 'chrMT'
-    def chrs_to_sep_out = "${chrX} ${chrY} ${chrMT}"
-    def bcftools_cpus = Math.round((task.cpus-1)/3)
+    // def chrs_to_sep_out = "${chrX} ${chrY} ${chrMT}"
+    // def bcftools_cpus = Math.round((task.cpus-1)/3)
     """
     if [ -f ${params.diploid_haploid_ref_folder}/autosomes.fa.gz ]
     then
         ln -s ${params.diploid_haploid_ref_folder}/*.*.gz.* .
-    
+
     else
         split_out_chrs.py -i $ref_fasta --chrs $chrX $chrY $chrMT
 
